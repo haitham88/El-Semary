@@ -538,8 +538,6 @@
     $(document).ready(function () {
 
         $(".clickable-row").click(function() {
-            // var trid = $(this).data("id");
-            // console.log(trid)
             window.location = $(this).data("href");
         });
     @if (!$dataType->server_side)

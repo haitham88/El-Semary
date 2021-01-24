@@ -23,10 +23,16 @@ class InvoiceController extends \TCG\Voyager\Http\Controllers\VoyagerBaseControl
         foreach ($ids as $key=>$value){
             $invoice_id = $key;
         }
-        $data = Invoice::where("id", $invoice_id)->first();
+        $data = Invoice::with("order")->where("id", $invoice_id)->first();
+        $order = Order::with("invoices")->where("id", $data->order_id)->first();
+        $remaining = $order->total_price;
+        foreach ($order->invoices as $invoice){
+            $remaining -= $invoice->amount;
+        }
         $customer = Customer::where("id", $data->customer_id)->first();
 //            dd($customer);
         $data->customer_name = $customer->first_name." ".$customer->middle_name." ".$customer->last_name;
+        $data->remaining = $remaining;
         // share data to view
         view()->share('invoice',$data);
         $pdf = PDF::loadView('pdfs.invoices', $data);

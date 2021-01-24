@@ -106,7 +106,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach($dataTypeContent as $data)
-                                    <tr>
+                                    <tr class='clickable-row' data-href='{{route("voyager.operations.index", ['rowId' => $data->serial_number])}}' >
                                         @if($showCheckboxColumn)
                                             <td>
                                                 <input type="checkbox" name="row_id" id="checkbox_{{ $data->getKey() }}" value="{{ $data->getKey() }}">
@@ -322,6 +322,10 @@
     @endif
     <script>
         $(document).ready(function () {
+
+            $(".clickable-row").click(function() {
+                window.location = $(this).data("href");
+            });
             @if (!$dataType->server_side)
                 var table = $('#dataTable').DataTable({!! json_encode(
                     array_merge([
