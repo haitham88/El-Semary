@@ -29,7 +29,7 @@
         <h4>Amount: <span id="content" >{{$invoice->amount}}</span></h4>
         <h4>Payment Method: <span id="content" >{{$invoice->payment_method}}</span></h4>
         <h4>Currency: <span id="content" >{{$invoice->currency}}</span></h4>
-        <h4>Branch: <span id="content" >{{$invoice->branch}}</span></h4>
+        <h4>Branch: <span id="content" >{{$invoice->branch->name}}</span></h4>
         <h4>Order Serial Number: <span id="content" >{{$invoice->order->serial_number}}</span></h4>
         <h4>Remaining: <span id="content" >{{$invoice->remaining}}</span></h4>
 

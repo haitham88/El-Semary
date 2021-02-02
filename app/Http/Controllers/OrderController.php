@@ -1014,9 +1014,17 @@ class OrderController extends \TCG\Voyager\Http\Controllers\VoyagerBaseControlle
                         $total_count = $relationshipOptions->count();
                         $relationshipOptions = $relationshipOptions->forPage($page, $on_page);
                     } else {
-                        $total_count = $model->where($options->label, 'LIKE', '%' . $search . '%')->count();
+
+                        $total_count = $model->where($options->label, 'LIKE', '%'.$search.'%')
+                            ->orWhere("mobile", 'LIKE', '%'.$search.'%')
+                            ->orWhere("last_name", 'LIKE', '%'.$search.'%')
+                            ->orWhere("first_name", 'LIKE', '%'.$search.'%')
+                            ->count();
                         $relationshipOptions = $model->take($on_page)->skip($skip)
-                            ->where($options->label, 'LIKE', '%' . $search . '%')
+                            ->where($options->label, 'LIKE', '%'.$search.'%')
+                            ->orWhere("mobile", 'LIKE', '%'.$search.'%')
+                            ->orWhere("last_name", 'LIKE', '%'.$search.'%')
+                            ->orWhere("first_name", 'LIKE', '%'.$search.'%')
                             ->get();
                     }
                 } else {
@@ -1043,12 +1051,19 @@ class OrderController extends \TCG\Voyager\Http\Controllers\VoyagerBaseControlle
                 }
 
                 foreach ($relationshipOptions as $relationshipOption) {
-                    $results[] = [
-                        'id' => $relationshipOption->{$options->key},
-                        'text' => $relationshipOption->{$options->label},
-                    ];
+                    if ($relationshipOption->first_name){
+                        $results[] = [
+                            'id'   => $relationshipOption->{$options->key},
+                            'text' => $relationshipOption->first_name." ".$relationshipOption->last_name."/".$relationshipOption->mobile ,
+                        ];
+                    }
+                    else{
+                        $results[] = [
+                            'id'   => $relationshipOption->{$options->key},
+                            'text' => $relationshipOption->{$options->label} ,
+                        ];
+                    }
                 }
-
                 return response()->json([
                     'results' => $results,
                     'pagination' => [

@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Branch;
 use App\Customer;
 use App\El3ohad;
+use App\El3ohadBranch;
+use App\Employee;
 use App\Invoice;
 use App\Item;
 use App\Order;
@@ -23,7 +26,7 @@ class InvoiceController extends \TCG\Voyager\Http\Controllers\VoyagerBaseControl
         foreach ($ids as $key=>$value){
             $invoice_id = $key;
         }
-        $data = Invoice::with("order")->where("id", $invoice_id)->first();
+        $data = Invoice::with(["order", "branch"])->where("id", $invoice_id)->first();
         $order = Order::with("invoices")->where("id", $data->order_id)->first();
         $remaining = $order->total_price;
         foreach ($order->invoices as $invoice){
@@ -198,6 +201,8 @@ class InvoiceController extends \TCG\Voyager\Http\Controllers\VoyagerBaseControl
             'showCheckboxColumn'
         ));
     }
+
+
     public function store(Request $request)
     {
         $slug = $this->getSlug($request);
@@ -214,26 +219,23 @@ class InvoiceController extends \TCG\Voyager\Http\Controllers\VoyagerBaseControl
         $request->request->set("date", $invoice_date);
 
         $dataType = Voyager::model('DataType')->where('slug', '=', $slug)->first();
-
         // Check permission
+
         $this->authorize('add', app($dataType->model_name));
         $order = Order::with("customer")->where("id", $request->request->get("order_id"))->first();
         $request->request->set("customer_id", $order->customer->id);
+        if ($request->request->get("type") == null){
+            $request->request->set("type", "paid");
+        }
+
         // Validate fields with ajax
         $val = $this->validateBread($request->all(), $dataType->addRows)->validate();
         $data = $this->insertUpdateData($request, $slug, $dataType->addRows, new $dataType->model_name());
         if ($data){
-            $el3ohda = El3ohad::whereHas('employee', function ($q) use ($data){
-                $q->where("name", $data->branch);
-            })->first();
-            if($data->type == "paid"){
-                $el3ohda->money -= $data->amount;
-            }
-//            else{
-//                $el3ohda->money += $data->amount;
-//            }
-            $el3ohda->save();
-
+            $branch_id = $request->request->get("branch_id");
+            $type = $request->request->get("type");
+            $money = $request->request->get("amount");
+            $this->edit_el3ohad_branch($branch_id, $type, $money);
         }
         event(new BreadDataAdded($dataType, $data));
 
@@ -251,6 +253,16 @@ class InvoiceController extends \TCG\Voyager\Http\Controllers\VoyagerBaseControl
         } else {
             return response()->json(['success' => true, 'data' => $data]);
         }
+    }
+    public function edit_el3ohad_branch($branch_id, $type, $money){
+        $el3ohad = El3ohadBranch::where("branch_id", $branch_id)->first();
+        if ($type == "paid"){
+            $el3ohad->money +=  $money;
+        }
+        else{
+            $el3ohad->money -=  $money;
+        }
+        $el3ohad->save();
     }
     public function show(Request $request, $id)
     {
@@ -300,8 +312,9 @@ class InvoiceController extends \TCG\Voyager\Http\Controllers\VoyagerBaseControl
         if (view()->exists("voyager::$slug.read")) {
             $view = "voyager::$slug.read";
         }
-
-        return Voyager::view($view, compact('dataType', 'dataTypeContent', 'isModelTranslatable', 'isSoftDeleted'));
+        $employees = Employee::all();
+        $branches = Branch::all();
+        return Voyager::view($view, compact('branches','employees','dataType', 'dataTypeContent', 'isModelTranslatable', 'isSoftDeleted'));
     }
     public function relation(Request $request)
     {
@@ -310,10 +323,10 @@ class InvoiceController extends \TCG\Voyager\Http\Controllers\VoyagerBaseControl
         $on_page = 50;
         $search = $request->input('search', false);
         $dataType = Voyager::model('DataType')->where('slug', '=', $slug)->first();
-
         $method = $request->input('method', 'add');
 
         $model = app($dataType->model_name);
+
         if ($method != 'add') {
             $model = $model->find($request->input('id'));
         }

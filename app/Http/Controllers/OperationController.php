@@ -84,11 +84,12 @@ class OperationController extends \TCG\Voyager\Http\Controllers\VoyagerBaseContr
                 ]);
             } elseif ($model->timestamps) {
                 if ($request->rowId)
-                    $dataTypeContent = Operation::where("item_id", $request->rowId)->get();
+                    $dataTypeContent = Operation::where("item_id", $request->rowId)
+                        ->where("status", "!=" ,"Closed")->get();
                 else
-                    $dataTypeContent = call_user_func([$query->latest($model::CREATED_AT), $getter]);
+                    $dataTypeContent = call_user_func([$query->where("status", '!=', "Closed")->latest($model::CREATED_AT), $getter]);
             } else {
-                $dataTypeContent = call_user_func([$query->orderBy($model->getKeyName(), 'DESC'), $getter]);
+                $dataTypeContent = call_user_func([$query->where("status", '!=', "Closed")->orderBy($model->getKeyName(), 'DESC'), $getter]);
             }
 
             // Replace relationships' keys for labels and create READ links if a slug is provided.

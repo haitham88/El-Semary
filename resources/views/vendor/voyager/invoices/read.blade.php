@@ -3,8 +3,7 @@
 @section('page_title', __('voyager::generic.view').' '.$dataType->getTranslatedAttribute('display_name_singular'))
 @section('page_header')
     <h1 class="page-title">
-        <i class="{{ $dataType->icon }}"></i> {{ __('voyager::generic.viewing') }} {{ ucfirst($dataType->getTranslatedAttribute('display_name_singular')) }} &nbsp;
-
+        <i class="{{ $dataType->icon }}"></i> {{ __('voyager::generic.viewing') }} {{ ucfirst($dataType->getTranslatedAttribute('display_name_singular')) }}
         @can('edit', $dataTypeContent)
             <a href="{{ route('voyager.'.$dataType->slug.'.edit', $dataTypeContent->getKey()) }}" class="btn btn-info">
                 <span class="glyphicon glyphicon-pencil"></span>&nbsp;
@@ -13,12 +12,17 @@
         @endcan
         @can('delete', $dataTypeContent)
             @if($isSoftDeleted)
-                <a href="{{ route('voyager.'.$dataType->slug.'.restore', $dataTypeContent->getKey()) }}" title="{{ __('voyager::generic.restore') }}" class="btn btn-default restore" data-id="{{ $dataTypeContent->getKey() }}" id="restore-{{ $dataTypeContent->getKey() }}">
-                    <i class="voyager-trash"></i> <span class="hidden-xs hidden-sm">{{ __('voyager::generic.restore') }}</span>
+                <a href="{{ route('voyager.'.$dataType->slug.'.restore', $dataTypeContent->getKey()) }}"
+                   title="{{ __('voyager::generic.restore') }}" class="btn btn-default restore"
+                   data-id="{{ $dataTypeContent->getKey() }}" id="restore-{{ $dataTypeContent->getKey() }}">
+                    <i class="voyager-trash"></i> <span
+                            class="hidden-xs hidden-sm">{{ __('voyager::generic.restore') }}</span>
                 </a>
             @else
-                <a href="javascript:;" title="{{ __('voyager::generic.delete') }}" class="btn btn-danger delete" data-id="{{ $dataTypeContent->getKey() }}" id="delete-{{ $dataTypeContent->getKey() }}">
-                    <i class="voyager-trash"></i> <span class="hidden-xs hidden-sm">{{ __('voyager::generic.delete') }}</span>
+                <a href="javascript:;" title="{{ __('voyager::generic.delete') }}" class="btn btn-danger delete"
+                   data-id="{{ $dataTypeContent->getKey() }}" id="delete-{{ $dataTypeContent->getKey() }}">
+                    <i class="voyager-trash"></i> <span
+                            class="hidden-xs hidden-sm">{{ __('voyager::generic.delete') }}</span>
                 </a>
             @endif
         @endcan
@@ -29,10 +33,16 @@
         </a>
 
         <a href="{{ route('invoice_export_pdf', $dataTypeContent->getKey()) }}" class="btn btn-info">
-{{--            <span class="glyphicon glyphicon-pencil"></span>&nbsp;--}}
+            {{--            <span class="glyphicon glyphicon-pencil"></span>&nbsp;--}}
             PDF
         </a>
+        @if($dataTypeContent->type == "paid")
+        <button id="myForm" type="submit" class="btn btn-primary">Cancel Invoice</button>
+        @endif
     </h1>
+
+
+
     @include('voyager::multilingual.language-selector')
 @stop
 
@@ -45,9 +55,10 @@
                     <!-- form start -->
                     @foreach($dataType->readRows as $row)
                         @php
-                        if ($dataTypeContent->{$row->field.'_read'}) {
-                            $dataTypeContent->{$row->field} = $dataTypeContent->{$row->field.'_read'};
-                        }
+                            if ($dataTypeContent->{$row->field.'_read'}) {
+                                $dataTypeContent->{$row->field} = $dataTypeContent->{$row->field.'_read'};
+                            }
+
                         @endphp
                         <div class="panel-heading" style="border-bottom:0;">
                             <h3 class="panel-title">{{ $row->getTranslatedAttribute('display_name') }}</h3>
@@ -70,7 +81,7 @@
                                          src="{{ filter_var($dataTypeContent->{$row->field}, FILTER_VALIDATE_URL) ? $dataTypeContent->{$row->field} : Voyager::image($dataTypeContent->{$row->field}) }}">
                                 @endif
                             @elseif($row->type == 'relationship')
-                                 @include('voyager::formfields.relationship', ['view' => 'read', 'options' => $row->details])
+                                @include('voyager::formfields.relationship', ['view' => 'read', 'options' => $row->details])
                             @elseif($row->type == 'select_dropdown' && property_exists($row->details, 'options') &&
                                     !empty($row->details->options->{$dataTypeContent->{$row->field}})
                             )
@@ -102,15 +113,16 @@
                             @elseif($row->type == 'checkbox')
                                 @if(property_exists($row->details, 'on') && property_exists($row->details, 'off'))
                                     @if($dataTypeContent->{$row->field})
-                                    <span class="label label-info">{{ $row->details->on }}</span>
+                                        <span class="label label-info">{{ $row->details->on }}</span>
                                     @else
-                                    <span class="label label-primary">{{ $row->details->off }}</span>
+                                        <span class="label label-primary">{{ $row->details->off }}</span>
                                     @endif
                                 @else
-                                {{ $dataTypeContent->{$row->field} }}
+                                    {{ $dataTypeContent->{$row->field} }}
                                 @endif
                             @elseif($row->type == 'color')
-                                <span class="badge badge-lg" style="background-color: {{ $dataTypeContent->{$row->field} }}">{{ $dataTypeContent->{$row->field} }}</span>
+                                <span class="badge badge-lg"
+                                      style="background-color: {{ $dataTypeContent->{$row->field} }}">{{ $dataTypeContent->{$row->field} }}</span>
                             @elseif($row->type == 'coordinates')
                                 @include('voyager::partials.coordinates')
                             @elseif($row->type == 'rich_text_box')
@@ -149,8 +161,12 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('voyager::generic.close') }}"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title"><i class="voyager-trash"></i> {{ __('voyager::generic.delete_question') }} {{ strtolower($dataType->getTranslatedAttribute('display_name_singular')) }}?</h4>
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="{{ __('voyager::generic.close') }}"><span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title"><i
+                                class="voyager-trash"></i> {{ __('voyager::generic.delete_question') }} {{ strtolower($dataType->getTranslatedAttribute('display_name_singular')) }}
+                        ?</h4>
                 </div>
                 <div class="modal-footer">
                     <form action="{{ route('voyager.'.$dataType->slug.'.index') }}" id="delete_form" method="POST">
@@ -159,11 +175,67 @@
                         <input type="submit" class="btn btn-danger pull-right delete-confirm"
                                value="{{ __('voyager::generic.delete_confirm') }} {{ strtolower($dataType->getTranslatedAttribute('display_name_singular')) }}">
                     </form>
-                    <button type="button" class="btn btn-default pull-right" data-dismiss="modal">{{ __('voyager::generic.cancel') }}</button>
+                    <button type="button" class="btn btn-default pull-right"
+                            data-dismiss="modal">{{ __('voyager::generic.cancel') }}</button>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
+
+    <div class="modal fade" tabindex="-1" role="dialog" id="myModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="{{ route('voyager.invoices.store') }}" id="update" method="post" role="form" enctype="multipart/form-data">
+                    {{ csrf_field() }}
+                    <input type="hidden" id="type" name="type" value="cancelled">
+                    <input type="hidden" id="customer_id" name="customer_id" value={{$dataTypeContent->customer_id}}>
+                    <input type="hidden" id="amount" name="amount" value={{$dataTypeContent->amount}}>
+                    <input type="hidden" id="order_id" name="order_id" value={{$dataTypeContent->order_id}}>
+                    <input type="hidden" id="payment_method" name="payment_method" value={{$dataTypeContent->payment_method}}>
+                    <input type="hidden" id="currency" name="currency" value={{$dataTypeContent->currency}}>
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                    aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" style="border: #323A42">Are you sure to want to cancel this
+                            invoice?</h4>
+                    </div>
+                    <div class="modal-body">
+
+                        <div>
+                            <label style="color: #323A42">Branch Name:</label>
+                            <br>
+                            <select id="branch_id" style="width: 100%" name="branch_id" required>
+                                @foreach($branches as $branch)
+                                    <option value={{$branch->id}}>{{$branch->name}}</option>
+                                @endforeach
+
+                            </select>
+                        </div>
+                        <br>
+                        <div>
+                            <label style="color: #323A42">Employee Name:</label>
+                            <br>
+                            <select id="employee_id" style="width: 100%" name="employee_id" required>
+                                @foreach($employees as $employee)
+                                    @if($employee->title == "Sales")
+                                    <option value={{$employee->id}}>{{$employee->name}}</option>
+                                    @endif
+                                @endforeach
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+
+                    </div>
+                </form>
+
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
 @stop
 
 @section('javascript')
@@ -175,6 +247,12 @@
         </script>
     @endif
     <script>
+        $('#myForm').on('click', function (e) {
+            $('#myModal').modal('show');
+            e.preventDefault();
+        });
+
+
         var deleteFormAction;
         $('.delete').on('click', function (e) {
             var form = $('#delete_form')[0];

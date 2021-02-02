@@ -99,7 +99,7 @@ return [
         /*
          * Set whether or not the multilingual is supported by the BREAD input.
          */
-        'enabled' => false,
+        'enabled' => true,
 
         /*
          * Select default language
@@ -111,7 +111,7 @@ return [
          */
         'locales' => [
             'en',
-            //'pt',
+            'ar',
         ],
     ],
 
@@ -191,7 +191,6 @@ return [
     ],
 
     'additional_js' => [
-        //'js/custom.js',
 //"https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js",
 //"https://cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js",
 //"https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js",

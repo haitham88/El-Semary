@@ -56,9 +56,23 @@
 
                     <!-- CSRF TOKEN -->
                         {{ csrf_field() }}
-
+                    @if($add)
                         <div class="panel-body">
+{{--                                    <table id="field">--}}
+{{--                                         <tbody>--}}
 
+{{--                                          <tr id="row1" class="row">--}}
+{{--                                                 <td> <span class='num'>1</span></td>--}}
+{{--                                                 <td><input name="fn[]" type="text" /></td>--}}
+{{--                                                 <td><select name="name[]" class="myDropDownLisTId">--}}
+{{--                                                 </select></td>--}}
+{{--                                                 <td>--}}
+{{--                                                     <input type="submit"></input>--}}
+{{--                                                 </td>--}}
+{{--                                             </tr>    </tbody>--}}
+{{--                                        </table>--}}
+{{--                            <button type="button" id="addField">Add Field</button>--}}
+{{--                            <button type="button" id="deleteField">Delete Field</button>--}}
                             <button type="button" class="btn btn-primary add" ONCLICK="ShowAndHide()" btn-add-new>اضافة
                                 عميل
                             </button>
@@ -87,47 +101,49 @@
                             </div>
                         </div>
 
-                        <div class="table-responsive ">
-                            <h4 style="color: blue">اضافة المنتجات </h4>
+                        <div class="table-responsive" style="margin-right: 20px">
+                            <h4 style="color: blue;">اضافة المنتجات </h4>
 
                             <table style="width:98%">
                                 <tr>
                                     <td>القسم</td>
                                     <td>المنتج</td>
                                     <td>المواصفات</td>
-                                    <td>كود الخامة</td>
-                                    <td>كود اللون</td>
+                                    <td>كود القماش</td>
+                                    <td>لون الدهان</td>
                                     <td>السعر</td>
-                                    <td>الصور</td>
+{{--                                    <td>الصور</td>--}}
                                     <td>حذف/اضافة</td>
                                 </tr>
                                 <tr>
                                     <td><select id="category" style="width: 100%" name="category[]" required>
-                                            <option value=rd
-                                                    0>None</option>
+{{--                                            <option value=0>None</option>--}}
                                         @foreach($categories as $category)
 
                                                 <option value={{$category->id}}>{{$category->name}}</option>
                                             @endforeach
                                         </select></td>
                                     <td><select id="sub_category" style="width: 100%" name="sub_category[]" required>
-                                            <option value=0>None</option>
+                                                <option value=0>other</option>
                                             @foreach($subCategories as $subCategory)
                                                 <option value={{$subCategory->id}}>{{$subCategory->name}}</option>
                                             @endforeach
                                         </select></td>
-                                    <td><textarea style="width: 100%" name="specs[]"></textarea></td>
+                                    <td><textarea style="width: 275px; height: 99px;" name="specs[]"></textarea></td>
                                     <td><input style="width: 100%" type='number' name="material_codes[]" ></td>
-                                    <td><input style="width: 100%" type='number' name="color_codes[]" ></td>
+                                    <td><input style="width: 100%" type='text' name="color_codes[]" ></td>
                                     <td><input style="width: 100%" type='number' name="price[]" required></td>
 
-                                    <td><input style="width: 100%" type="file" name="Image[]" multiple="multiple"
-                                               accept="image/*"></td>
+{{--                                    <td><input style="width: 100%" type="file" name="Image[]" multiple="multiple"--}}
+{{--                                               accept="image/*"></td>--}}
                                     <td><input type='button' class='AddNew' value='Add new item'></td>
                                 </tr>
                             </table>
                         </div>
+
                         <br>
+
+                        @endif
                         @if (count($errors) > 0)
                             <div class="alert alert-danger">
                                 <ul>
@@ -160,11 +176,12 @@
                             <div
                                 class="form-group @if($row->type == 'hidden') hidden @endif col-md-{{ $display_options->width ?? 12 }} {{ $errors->has($row->field) ? 'has-error' : '' }}" @if(isset($display_options->id)){{ "id=$display_options->id" }}@endif>
                                 {{ $row->slugify }}
-                                @if($row->display_name == "العميل")
-                                    <div id="customer_label" style="display:block">
+                                @if($row->display_name == "العميل" or $row->display_name == "customer")
+
+                                    <div id="customer_label" style="display:block; ">
                                         <label class="control-label"
-                                               for="name">العميل </label>
-                                        {{--                                @include('voyager::multilingual.input-hidden-bread-edit-add')--}}
+                                               for="name">{{ $row->getTranslatedAttribute('display_name') }}</label>
+                                   @include('voyager::multilingual.input-hidden-bread-edit-add')
                                     </div>
                                 @else
                                     <label class="control-label"
@@ -177,7 +194,7 @@
                                 @if (isset($row->details->view))
                                     @include($row->details->view, ['row' => $row, 'dataType' => $dataType, 'dataTypeContent' => $dataTypeContent, 'content' => $dataTypeContent->{$row->field}, 'action' => ($edit ? 'edit' : 'add'), 'view' => ($edit ? 'edit' : 'add'), 'options' => $row->details])
                                 @elseif ($row->type == 'relationship')
-                                    @if($row->display_name == "العميل")
+                                    @if($row->display_name == "العميل" or $row->display_name == "customer")
                                         <div id="customer" style="display:block">
                                             @include('voyager::formfields.relationship', ['options' => $row->details])
 
@@ -259,23 +276,24 @@
 @stop
 
 @section('javascript')
+    <script src="/custom_js/order.js"></script>
     <script>
         $("#category").change(function() {
             console.log($(this).val())
             // $("#second-choice").load("textdata/" + $(this).val() + ".txt");
         });
 
-        $('.AddNew').click(function () {
-            var row = $(this).closest('tr').clone();
-            row.find('input').val('');
-            $(this).closest('tr').after(row);
-            $('input[type="button"]', row).removeClass('AddNew')
-                .addClass('RemoveRow').val('Remove item');
-        });
-
-        $('table').on('click', '.RemoveRow', function () {
-            $(this).closest('tr').remove();
-        });
+        // $('.AddNew').click(function () {
+        //     var row = $(this).closest('tr').clone();
+        //     row.find('input').val('');
+        //     $(this).closest('tr').after(row);
+        //     $('input[type="button"]', row).removeClass('AddNew')
+        //         .addClass('RemoveRow').val('Remove item');
+        // });
+        //
+        // $('table').on('click', '.RemoveRow', function () {
+        //     $(this).closest('tr').remove();
+        // });
         // document.getElementById("newsectionbtn").onclick = function() {
         //     var container = document.getElementById("container");
         //     var section = document.getElementById("mainsection");
