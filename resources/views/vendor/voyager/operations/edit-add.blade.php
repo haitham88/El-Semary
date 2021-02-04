@@ -21,10 +21,14 @@
 
 @section('content')
     <div class="page-content edit-add container-fluid">
+
         <div class="row">
             <div class="col-md-12">
 
                 <div class="panel panel-bordered">
+{{--                    <div style="color: darkred; text-align: center">--}}
+{{--                        <h2 id="error_msg" style="display: none">Haitham AKram Wageh</h2>--}}
+{{--                    </div>--}}
                     <!-- form start -->
                     <form role="form"
                             class="form-edit-add"
@@ -69,11 +73,24 @@
 
                                 <div class="form-group @if($row->type == 'hidden') hidden @endif col-md-{{ $display_options->width ?? 12 }} {{ $errors->has($row->field) ? 'has-error' : '' }}" @if(isset($display_options->id)){{ "id=$display_options->id" }}@endif>
                                     {{ $row->slugify }}
+                                    @if($row->display_name == "Payment 1" or $row->display_name == "Payment 2" or $row->display_name == "Payment 3"
+                                           or $row->display_name == "Payment 4" or $row->display_name == "Payment 5")
+                                        <div style="display: inline-block;">
+                                            <label class="control-label" for="name">{{ $row->getTranslatedAttribute('display_name') }}</label>
+                                            @include('voyager::multilingual.input-hidden-bread-edit-add')
+                                        </div>
+                                    <div style="display: inline-block;">
+                                        <input type="checkbox" id="selected_payment" name="selected_payment" value="{{$row->display_name}}">
+
+                                    </div>
+                                    @else
                                     <label class="control-label" for="name">{{ $row->getTranslatedAttribute('display_name') }}</label>
                                     @include('voyager::multilingual.input-hidden-bread-edit-add')
-                                    @if (isset($row->details->view))
+                                    @endif
+                                        @if (isset($row->details->view))
                                         @include($row->details->view, ['row' => $row, 'dataType' => $dataType, 'dataTypeContent' => $dataTypeContent, 'content' => $dataTypeContent->{$row->field}, 'action' => ($edit ? 'edit' : 'add'), 'view' => ($edit ? 'edit' : 'add'), 'options' => $row->details])
                                     @elseif ($row->type == 'relationship')
+
                                         @include('voyager::formfields.relationship', ['options' => $row->details])
                                     @else
 
@@ -165,15 +182,16 @@
 
         $('document').ready(function () {
 
-
-            // $("#myDropDownLisTId").change(function() {
+            // $("#selected_payment").change(function() {
             //     document.getElementsByName('payment_1').onkeydown = function(e){
             //         e.preventDefault();
             //     }
             // });
             //
 
-//             $(document).on('click', '.form_control', function () {
+            // $(document).on('click', '#selected_payment', function () {
+
+
 //                 var pay1 = document.getElementsByName("payment_1");
 // console.log(pay1.value)
 //             });

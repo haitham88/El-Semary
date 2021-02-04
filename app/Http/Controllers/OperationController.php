@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\El3ohad;
 use App\Operation;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\Request;
@@ -170,15 +171,9 @@ class OperationController extends \TCG\Voyager\Http\Controllers\VoyagerBaseContr
     {
         $slug = $this->getSlug($request);
         $price = $request->request->get("price");
-        $payment_1 = $request->request->get("payment_1");
-        $payment_2 = $request->request->get("payment_2");
-        $payment_3 = $request->request->get("payment_3");
-        $payment_4 = $request->request->get("payment_4");
-        $payment_5 = $request->request->get("payment_5");
-        if($price){
-            $remaining = $price - ($payment_1 + $payment_2 + $payment_3 + $payment_4 + $payment_5);
-            $request->request->set("remaining", $remaining);
-        }
+
+        $selected_payment = $request->request->get("selected_payment");
+
         $dataType = Voyager::model('DataType')->where('slug', '=', $slug)->first();
 
         // Compatibility with Model binding.
@@ -197,9 +192,49 @@ class OperationController extends \TCG\Voyager\Http\Controllers\VoyagerBaseContr
         // Check permission
         $this->authorize('edit', $data);
 
-        // Validate fields with ajax
-        $val = $this->validateBread($request->all(), $dataType->editRows, $dataType->name, $id)->validate();
-        $this->insertUpdateData($request, $slug, $dataType->editRows, $data);
+        if ($selected_payment){
+            $payment_number = explode(" ", $selected_payment)[1];
+            $remaining = $request->request->get("remaining");
+            if ($remaining)
+            $remaining = $remaining - $request->request->get("payment_".$payment_number);
+            else
+                $remaining = $price - $request->request->get("payment_".$payment_number);
+
+            $operation = Operation::where("id",$request->request->get("id"))->update([
+               "category_id" => $request->request->get("category_id"),
+               "item_id" => $request->request->get("item_id"),
+               "process_id" => $request->request->get("process_id"),
+               "workshop_id" => $request->request->get("workshop_id"),
+               "price" => $request->request->get("price"),
+               "start_date" => $request->request->get("start_date"),
+               "end_date" => $request->request->get("end_date"),
+               "payment_".$payment_number => $request->request->get("payment_".$payment_number),
+               "emp_pay_".$payment_number => $request->request->get("emp_pay_".$payment_number),
+               "remaining" => $remaining,
+               "status" => $request->request->get("status"),
+               "order_id" => $request->request->get("order_id")
+            ]);
+            if ($operation){
+                $el3ohda = El3ohad::where("employee_id", $request->request->get("emp_pay_".$payment_number))->first();
+                $el3ohda->money -= $request->request->get("payment_".$payment_number);
+                $el3ohda->save();
+            }
+        }
+        else{
+            $payment_1 = $request->request->get("payment_1");
+            $payment_2 = $request->request->get("payment_2");
+            $payment_3 = $request->request->get("payment_3");
+            $payment_4 = $request->request->get("payment_4");
+            $payment_5 = $request->request->get("payment_5");
+            if($price){
+                $remaining = $price - ($payment_1 + $payment_2 + $payment_3 + $payment_4 + $payment_5);
+                $request->request->set("remaining", $remaining);
+            }
+            // Validate fields with ajax
+            $val = $this->validateBread($request->all(), $dataType->editRows, $dataType->name, $id)->validate();
+            $this->insertUpdateData($request, $slug, $dataType->editRows, $data);
+        }
+
 
         event(new BreadDataUpdated($dataType, $data));
 
