@@ -202,7 +202,7 @@ class OperationController extends \TCG\Voyager\Http\Controllers\VoyagerBaseContr
             else
                 $remaining = $price - $request->request->get("payment_".$payment_number);
 
-            $operation = Operation::where("id",$request->request->get("id"))->update([
+            $operation = Operation::where("id",$id)->update([
                "category_id" => $request->request->get("category_id"),
                "item_id" => $request->request->get("item_id"),
                "process_id" => $request->request->get("process_id"),
