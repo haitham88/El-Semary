@@ -18,7 +18,7 @@ class Order extends Model
 
     public function items()
     {
-        return $this->belongsToMany(Employee::class, "orders_items");
+        return $this->belongsToMany(Item::class, "orders_items");
     }
 
     public function customer()

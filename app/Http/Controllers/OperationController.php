@@ -175,7 +175,6 @@ class OperationController extends \TCG\Voyager\Http\Controllers\VoyagerBaseContr
         $selected_payment = $request->request->get("selected_payment");
 
         $dataType = Voyager::model('DataType')->where('slug', '=', $slug)->first();
-
         // Compatibility with Model binding.
         $id = $id instanceof \Illuminate\Database\Eloquent\Model ? $id->{$id->getKeyName()} : $id;
 
@@ -194,6 +193,9 @@ class OperationController extends \TCG\Voyager\Http\Controllers\VoyagerBaseContr
 
         if ($selected_payment){
             $payment_number = explode(" ", $selected_payment)[1];
+            if ($request->get("payment_".$payment_number) == null or $request->get("emp_pay_".$payment_number) == null){
+                return redirect()->route("voyager.{$slug}.edit", $id)->with(['message' => "you must enter payment and employee", 'alert-type' => 'error']);
+            }
             $remaining = $request->request->get("remaining");
             if ($remaining)
             $remaining = $remaining - $request->request->get("payment_".$payment_number);
